@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1020">
+<title>НУЦЗУ | Розклад</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#f4f6fc;font-family:Arial,sans-serif}
+.app{max-width:520px;margin:auto;padding:24px 18px 100px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+.logo{font-size:13px;color:#9ba8c5;letter-spacing:2px}
+.status{background:#17233a;color:#6ee7b7;padding:8px 12px;border-radius:20px;font-size:11px}
+h1{font-size:29px;margin:8px 0}
+.sub{color:#8996b1;font-size:14px}
+.hero{padding:24px;border-radius:23px;background:linear-gradient(135deg,#172b4d,#263e69);margin-bottom:24px}
+.hero small{color:#a9bddc}
+.hero h2{font-size:23px;margin:12px 0 6px}
+.section-title{font-size:17px;margin:25px 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:#151e31;border:1px solid #25314a;border-radius:18px;padding:20px 15px;min-height:115px;color:white;text-align:left;cursor:pointer}
+.tile span{font-size:25px;display:block;margin-bottom:13px}
+.tile b{font-size:14px}
+.tile:active{transform:scale(.98)}
+.panel{background:#151e31;border:1px solid #25314a;border-radius:18px;padding:20px;margin-top:15px}
+.panel p{color:#98a5bf;font-size:14px;line-height:1.5}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#111a2b;border-top:1px solid #26314a;display:flex;justify-content:center;padding:12px;gap:30px}
+.nav button{background:none;border:0;color:#9ba8c5;font-size:12px;cursor:pointer}
+.nav button.active{color:#75a9ff}
+.page{display:none}
+.page.active{display:block}
+.back{border:0;background:none;color:#83b4ff;font-size:14px;margin:5px 0 20px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="logo">НУЦЗУ · STUDENT APP</div>
+    <div class="status">● ONLINE</div>
+  </div>
+
+  <section id="home" class="page active">
+    <p class="sub">Вітаємо у студентському застосунку</p>
+    <h1>ПГПБк-24-1</h1>
+    <p class="sub">Твій розклад завжди під рукою.</p>
+
+    <div class="hero">
+      <small>НАВЧАЛЬНИЙ ПРОСТІР</small>
+      <h2>Твій університет.</h2>
+      <p class="sub">Розклад · Наряди · Інформація</p>
+    </div>
+
+    <div class="section-title">Навігація</div>
+    <div class="grid">
+      <button class="tile" onclick="openPage('today')">
+        <span>☀️</span><b>Сьогодні</b>
+      </button>
+      <button class="tile" onclick="openPage('tomorrow')">
+        <span>🌅</span><b>Завтра</b>
+      </button>
+      <button class="tile" onclick="openPage('week')">
+        <span>📅</span><b>Розклад на тиждень</b>
+      </button>
+      <button class="tile" onclick="openPage('duty')">
+        <span>🛡️</span><b>Наряди та чергування</b>
+      </button>
+    </div>
+  </section>
+
+  <section id="today" class="page">
+    <button class="back" onclick="openPage('home')">← Назад</button>
+    <h1>☀️ Сьогодні</h1>
+    <div class="panel"><p>Розклад буде підключено до твоєї таблиці.</p></div>
+  </section>
+
+  <section id="tomorrow" class="page">
+    <button class="back" onclick="openPage('home')">← Назад</button>
+    <h1>🌅 Завтра</h1>
+    <div class="panel"><p>Розклад буде підключено до твоєї таблиці.</p></div>
+  </section>
+
+  <section id="week" class="page">
+    <button class="back" onclick="openPage('home')">← Назад</button>
+    <h1>📅 На тиждень</h1>
+    <div class="panel"><p>Тижневий розклад буде підключено до твоєї таблиці.</p></div>
+  </section>
+
+  <section id="duty" class="page">
+    <button class="back" onclick="openPage('home')">← Назад</button>
+    <h1>🛡️ Наряди</h1>
+    <div class="panel"><p>Інформація про наряди буде підключена до таблиці.</p></div>
+  </section>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="openPage('home')">⌂ Головна</button>
+  <button onclick="openPage('today')">☀ Розклад</button>
+  <button onclick="openPage('duty')">🛡 Наряди</button>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+function openPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  if(id==='home') document.querySelectorAll('.nav button')[0].classList.add('active');
+  if(id==='today') document.querySelectorAll('.nav button')[1].classList.add('active');
+  if(id==='duty') document.querySelectorAll('.nav button')[2].classList.add('active');
+}
+</script>
+</body>
+</html>
