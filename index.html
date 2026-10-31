@@ -101,19 +101,138 @@ h1{font-size:29px;margin:8px 0}
   <button onclick="openPage('duty')">🛡 Наряди</button>
 </div>
 
-<script>
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-function openPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
-  if(id==='home') document.querySelectorAll('.nav button')[0].classList.add('active');
-  if(id==='today') document.querySelectorAll('.nav button')[1].classList.add('active');
-  if(id==='duty') document.querySelectorAll('.nav button')[2].classList.add('active');
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2vKKW3-iRpL0yC1qNWI25eiKGfO_sNNs8I8oDT75Ul3OfSI7-TnxT4HVrjCUjpQ/pub?gid=549037795&single=true&output=csv";
+
+let schedule = [];
+
+function parseCSV(text) {
+    const rows = [];
+    let row = [], cell = "", quoted = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"' && quoted && text[i + 1] === '"') {
+            cell += '"';
+            i++;
+        } else if (c === '"') {
+            quoted = !quoted;
+        } else if (c === ',' && !quoted) {
+            row.push(cell.trim());
+            cell = "";
+        } else if ((c === '\n' || c === '\r') && !quoted) {
+            if (c === '\r' && text[i + 1] === '\n') i++;
+            row.push(cell.trim());
+            if (row.some(v => v !== "")) rows.push(row);
+            row = [];
+            cell = "";
+        } else {
+            cell += c;
+        }
+    }
+
+    row.push(cell.trim());
+    if (row.some(v => v !== "")) rows.push(row);
+    return rows;
 }
+
+async function loadSchedule() {
+    try {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error("Не вдалося завантажити таблицю");
+
+        const csv = await response.text();
+        schedule = parseCSV(csv).slice(1);
+    } catch (error) {
+        console.error(error);
+        document.querySelectorAll(".panel").forEach(panel => {
+            panel.innerHTML = "Не вдалося завантажити розклад. Спробуй пізніше.";
+        });
+    }
+}
+
+function escapeHTML(value) {
+    return String(value || "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;",
+        '"': "&quot;", "'": "&#039;"
+    })[char]);
+}
+
+function getDay(date) {
+    const day = date.getDay();
+    return day === 0 ? 7 : day;
+}
+
+function renderDay(pageId, offset) {
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+
+    const day = getDay(date);
+    const lessons = schedule
+        .filter(row => Number(row[0]) === day)
+        .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+
+    const panel = document.querySelector(`#${pageId} .panel`);
+
+    if (!lessons.length) {
+        panel.innerHTML = "На цей день пар немає 🎉";
+        return;
+    }
+
+    panel.innerHTML = lessons.map(row => `
+        <div class="lesson">
+            <h3>${escapeHTML(row[3])}</h3>
+            <p>🕒 ${escapeHTML(row[1])} – ${escapeHTML(row[2])}</p>
+            <p>🏢 ${escapeHTML(row[4])}, ауд. ${escapeHTML(row[5])}</p>
+            <p>${escapeHTML(row[6])}</p>
+        </div>
+    `).join("");
+}
+
+function renderWeek() {
+    const panel = document.querySelector("#week .panel");
+    const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+    let html = "";
+
+    for (let day = 1; day <= 6; day++) {
+        const lessons = schedule
+            .filter(row => Number(row[0]) === day)
+            .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+
+        html += `<h3>${days[day - 1]}</h3>`;
+
+        if (!lessons.length) {
+            html += "<p>Пар немає</p>";
+        } else {
+            html += lessons.map(row => `
+                <div class="lesson">
+                    <b>${escapeHTML(row[3])}</b>
+                    <p>🕒 ${escapeHTML(row[1])} – ${escapeHTML(row[2])}</p>
+                    <p>🏢 ${escapeHTML(row[4])}, ауд. ${escapeHTML(row[5])}</p>
+                </div>
+            `).join("");
+        }
+    }
+
+    panel.innerHTML = html;
+}
+
+function openPage(id) {
+    document.querySelectorAll(".page").forEach(page =>
+        page.classList.remove("active")
+    );
+
+    document.getElementById(id).classList.add("active");
+
+    if (id === "today") renderDay("today", 0);
+    if (id === "tomorrow") renderDay("tomorrow", 1);
+    if (id === "week") renderWeek();
+}
+
+loadSchedule();
 </script>
 </body>
 </html>
